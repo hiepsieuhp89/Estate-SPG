@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrash, FaPlus, FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaTimes, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -17,18 +17,26 @@ import { isLoggedIn, getCurrentUser } from "@/utils/auth";
 
 export const RealEstatePage = () => {
   const [listings, setListings] = useState([]);
+  const [filteredListings, setFilteredListings] = useState([]);
   const [selectedListing, setSelectedListing] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [previewImages, setPreviewImages] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [previewImageIndex, setPreviewImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchListingsData();
   }, []);
 
+  useEffect(() => {
+    filterListings();
+  }, [searchTerm, listings]);
+
   const fetchListingsData = async () => {
+    setIsLoading(true);
     const listingsData = await fetchListings();
     console.log("listingsData", listingsData);
     // Sort listings by date in descending order
@@ -36,6 +44,35 @@ export const RealEstatePage = () => {
       (a, b) => new Date(b.date) - new Date(a.date),
     );
     setListings(sortedListings);
+    setFilteredListings(sortedListings);
+    setIsLoading(false);
+  };
+
+  const filterListings = () => {
+    if (!searchTerm.trim()) {
+      setFilteredListings(listings);
+      return;
+    }
+
+    const normalizeString = (str) => {
+      return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+
+    const normalizedSearchTerm = normalizeString(searchTerm);
+
+    const filtered = listings.filter((listing) => {
+      const normalizedTitle = normalizeString(listing.title);
+      const normalizedDescription = normalizeString(listing.description);
+      const normalizedPrice = normalizeString(listing.price);
+
+      return (
+        normalizedTitle.includes(normalizedSearchTerm) ||
+        normalizedDescription.includes(normalizedSearchTerm) ||
+        normalizedPrice.includes(normalizedSearchTerm)
+      );
+    });
+
+    setFilteredListings(filtered);
   };
 
   const openModal = (type, listing = null) => {
@@ -61,17 +98,20 @@ export const RealEstatePage = () => {
       return;
     }
     try {
+      setIsLoading(true);
       const currentUser = getCurrentUser();
       const listingWithCreator = {
         ...newListing,
         creator: currentUser.email,
       };
       const createdListing = await createListing(listingWithCreator, imageFiles);
-      fetchListingsData();
+      await fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error adding document: ", error);
       // Handle the error (e.g., show an error message to the user)
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,16 +126,19 @@ export const RealEstatePage = () => {
       return;
     }
     try {
+      setIsLoading(true);
       const updatedListings = await updateListingWithImageManagement(
         updatedListing,
         newImageFiles,
         removedImageUrls,
       );
-      fetchListingsData();
+      await fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error updating document: ", error);
       // Handle the error (e.g., show an error message to the user)
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,12 +150,15 @@ export const RealEstatePage = () => {
       return;
     }
     try {
+      setIsLoading(true);
       await deleteListingWithImages(id);
-      fetchListingsData();
+      await fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error removing document: ", error);
       // Handle the error (e.g., show an error message to the user)
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -174,17 +220,30 @@ export const RealEstatePage = () => {
         >
           Maverick Can, a member of Thien Khoi group, offers a wealth of Real Estate sources. These curated listings in Ha Noi are personally sourced and grouped. Discover your ideal property and connect with Maverick Can for more information.
         </motion.h2>
-        {isLoggedIn() && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => openModal("create")}
-            className="mb-6 rounded-full bg-gradient-to-r from-brown-500 to-black-600 px-6 py-3 font-bold text-white shadow-lg transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700 focus:outline-none focus:ring-2 focus:ring-brown-500 focus:ring-opacity-50"
-            aria-label="Add new listing"
-          >
-            <FaPlus className="mr-2 inline-block" /> Add New Listing
-          </motion.button>
-        )}
+        <div className="mb-6 flex items-center justify-between">
+          {isLoggedIn() && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => openModal("create")}
+              className="rounded-full bg-gradient-to-r from-brown-500 to-black-600 px-6 py-3 font-bold text-white shadow-lg transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700 focus:outline-none focus:ring-2 focus:ring-brown-500 focus:ring-opacity-50"
+              aria-label="Add new listing"
+              disabled={isLoading}
+            >
+              <FaPlus className="mr-2 inline-block" /> Add New Listing
+            </motion.button>
+          )}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search listings..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64 rounded-full bg-gray-700 px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-brown-500"
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -192,7 +251,7 @@ export const RealEstatePage = () => {
           className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           <AnimatePresence>
-            {listings.map((listing) => (
+            {filteredListings.map((listing) => (
               <motion.div
                 key={listing.id}
                 layout
@@ -233,6 +292,7 @@ export const RealEstatePage = () => {
                           onClick={() => openModal("edit", listing)}
                           className="mr-2 text-yellow-500 transition duration-300 ease-in-out hover:text-yellow-600"
                           aria-label={`Edit ${listing.title}`}
+                          disabled={isLoading}
                         >
                           <FaEdit size={20} />
                         </motion.button>
@@ -242,6 +302,7 @@ export const RealEstatePage = () => {
                           onClick={() => openModal("delete", listing)}
                           className="text-red-500 transition duration-300 ease-in-out hover:text-red-600"
                           aria-label={`Delete ${listing.title}`}
+                          disabled={isLoading}
                         >
                           <FaTrash size={20} />
                         </motion.button>
@@ -463,6 +524,7 @@ export const RealEstatePage = () => {
                       <button
                         type="submit"
                         className="rounded bg-brown-500 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:bg-brown-600"
+                        disabled={isLoading}
                       >
                         {modalType === "create"
                           ? "Add Listing"
@@ -481,6 +543,7 @@ export const RealEstatePage = () => {
                       <button
                         onClick={() => handleDelete(selectedListing.id)}
                         className="mr-2 rounded bg-red-500 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:bg-red-600"
+                        disabled={isLoading}
                       >
                         Delete
                       </button>
