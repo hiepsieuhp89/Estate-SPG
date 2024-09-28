@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrash, FaPlus, FaTimes, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrash,
+  FaPlus,
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+  FaSearch,
+} from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -56,7 +64,10 @@ export const RealEstatePage = () => {
     }
 
     const normalizeString = (str) => {
-      return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
     };
 
     const normalizedSearchTerm = normalizeString(searchTerm);
@@ -77,7 +88,10 @@ export const RealEstatePage = () => {
   };
 
   const openModal = (type, listing = null) => {
-    if ((type === "create" || type === "edit" || type === "delete") && !isLoggedIn()) {
+    if (
+      (type === "create" || type === "edit" || type === "delete") &&
+      !isLoggedIn()
+    ) {
       alert("You must be logged in to perform this action.");
       return;
     }
@@ -105,7 +119,10 @@ export const RealEstatePage = () => {
         ...newListing,
         creator: currentUser.email,
       };
-      const createdListing = await createListing(listingWithCreator, imageFiles);
+      const createdListing = await createListing(
+        listingWithCreator,
+        imageFiles,
+      );
       await fetchListingsData();
       closeModal();
     } catch (error) {
@@ -144,7 +161,7 @@ export const RealEstatePage = () => {
   };
 
   const handleDelete = async (id) => {
-    const listingToDelete = listings.find(listing => listing.id === id);
+    const listingToDelete = listings.find((listing) => listing.id === id);
     const currentUser = getCurrentUser();
     if (!isLoggedIn() || currentUser.email !== listingToDelete.creator) {
       alert("You don't have permission to delete this listing.");
@@ -203,9 +220,9 @@ export const RealEstatePage = () => {
   };
 
   const truncateText = (text, maxLines) => {
-    const lines = text.split('\n');
+    const lines = text.split("\n");
     if (lines.length > maxLines) {
-      return lines.slice(0, maxLines).join('\n') + '...';
+      return lines.slice(0, maxLines).join("\n") + "...";
     }
     return text;
   };
@@ -230,9 +247,12 @@ export const RealEstatePage = () => {
           initial={{ y: -30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mb-6 text-xl font-semibold text-gray-600 italic"
+          className="mb-6 text-xl font-semibold italic text-gray-600"
         >
-          Maverick Can, a member of Thien Khoi group, offers a wealth of Real Estate sources. These curated listings in Ha Noi are personally sourced and grouped. Discover your ideal property and connect with Maverick Can for more information.
+          Maverick Can (Tùng Bất Động), a member of Thien Khoi group, offers a
+          wealth of Real Estate sources. These curated listings in Ha Noi are
+          personally sourced and grouped. Discover your ideal property and
+          connect with Maverick Can for more information.
         </motion.h2>
         <div className="mb-6 flex items-center justify-between">
           {isLoggedIn() && (
@@ -240,7 +260,7 @@ export const RealEstatePage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => openModal("create")}
-              className="rounded-full bg-gradient-to-r from-brown-500 to-black-600 px-6 py-3 font-bold text-white shadow-lg transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700 focus:outline-none focus:ring-2 focus:ring-brown-500 focus:ring-opacity-50"
+              className="to-black-600 hover:to-black-700 rounded-full bg-gradient-to-r from-brown-500 px-6 py-3 font-bold text-white shadow-lg transition duration-300 ease-in-out hover:from-brown-600 focus:outline-none focus:ring-2 focus:ring-brown-500 focus:ring-opacity-50"
               aria-label="Add new listing"
               disabled={isLoading}
             >
@@ -275,56 +295,59 @@ export const RealEstatePage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }}
-                className="overflow-hidden rounded-lg bg-gray-800 shadow-md transition duration-300 ease-in-out flex flex-col"
+                className="flex flex-col overflow-hidden rounded-lg bg-gray-800 shadow-md transition duration-300 ease-in-out"
               >
                 <img
                   src={listing.images[0]}
                   alt={listing.title}
                   className="h-48 w-full object-cover"
                 />
-                <div className="p-4 flex-grow">
-                  <h2 className="mb-2 text-xl font-semibold text-white line-clamp-3">
+                <div className="flex-grow p-4">
+                  <h2 className="mb-2 line-clamp-3 text-xl font-semibold text-white">
                     {listing.title}
                   </h2>
-                  <p className="mb-2 text-lg font-bold text-brown-400">{listing.price}</p>
-                  <p className="mb-4 text-sm text-gray-300 whitespace-pre-line line-clamp-6">
+                  <p className="mb-2 text-lg font-bold text-brown-400">
+                    {listing.price}
+                  </p>
+                  <p className="mb-4 line-clamp-6 whitespace-pre-line text-sm text-gray-300">
                     {listing.description}
                   </p>
                 </div>
-                <div className="p-4 mt-auto">
+                <div className="mt-auto p-4">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => openModal("view", listing)}
-                    className="w-full rounded bg-gradient-to-r from-brown-500 to-black-600 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700 mb-2"
+                    className="to-black-600 hover:to-black-700 mb-2 w-full rounded bg-gradient-to-r from-brown-500 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:from-brown-600"
                     aria-label={`View details of ${listing.title}`}
                   >
                     View Details
                   </motion.button>
-                  {isLoggedIn() && getCurrentUser().email === listing.creator && (
-                    <div className="flex justify-between">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => openModal("edit", listing)}
-                        className="flex-1 mr-2 text-yellow-500 transition duration-300 ease-in-out hover:text-yellow-600 bg-gray-700 rounded py-1"
-                        aria-label={`Edit ${listing.title}`}
-                        disabled={isLoading}
-                      >
-                        <FaEdit size={20} className="mx-auto" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => openModal("delete", listing)}
-                        className="flex-1 text-red-500 transition duration-300 ease-in-out hover:text-red-600 bg-gray-700 rounded py-1"
-                        aria-label={`Delete ${listing.title}`}
-                        disabled={isLoading}
-                      >
-                        <FaTrash size={20} className="mx-auto" />
-                      </motion.button>
-                    </div>
-                  )}
+                  {isLoggedIn() &&
+                    getCurrentUser().email === listing.creator && (
+                      <div className="flex justify-between">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => openModal("edit", listing)}
+                          className="mr-2 flex-1 rounded bg-gray-700 py-1 text-yellow-500 transition duration-300 ease-in-out hover:text-yellow-600"
+                          aria-label={`Edit ${listing.title}`}
+                          disabled={isLoading}
+                        >
+                          <FaEdit size={20} className="mx-auto" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => openModal("delete", listing)}
+                          className="flex-1 rounded bg-gray-700 py-1 text-red-500 transition duration-300 ease-in-out hover:text-red-600"
+                          aria-label={`Delete ${listing.title}`}
+                          disabled={isLoading}
+                        >
+                          <FaTrash size={20} className="mx-auto" />
+                        </motion.button>
+                      </div>
+                    )}
                 </div>
               </motion.div>
             ))}
@@ -372,14 +395,19 @@ export const RealEstatePage = () => {
                       navigation
                       pagination={{ clickable: true }}
                       className="mb-4 overflow-hidden rounded-lg"
-                      style={{ aspectRatio: '16 / 9' }}
+                      style={{ aspectRatio: "16 / 9" }}
                     >
                       {selectedListing.images.map((image, index) => (
-                        <SwiperSlide key={index} className="flex items-center justify-center bg-black">
+                        <SwiperSlide
+                          key={index}
+                          className="flex items-center justify-center bg-black"
+                        >
                           <img
                             src={image}
-                            alt={`${selectedListing.title} - Image ${index + 1}`}
-                            className="max-h-full max-w-full object-contain cursor-pointer"
+                            alt={`${selectedListing.title} - Image ${
+                              index + 1
+                            }`}
+                            className="max-h-full max-w-full cursor-pointer object-contain"
                             onClick={() => openImagePreview(image, index)}
                           />
                         </SwiperSlide>
@@ -388,8 +416,10 @@ export const RealEstatePage = () => {
                     <h3 className="mb-2 text-xl font-semibold text-white">
                       {truncateText(selectedListing.title, 3)}
                     </h3>
-                    <p className="mb-2 text-brown-400">{selectedListing.price}</p>
-                    <p className="mb-4 text-gray-300 whitespace-pre-line">
+                    <p className="mb-2 text-brown-400">
+                      {selectedListing.price}
+                    </p>
+                    <p className="mb-4 whitespace-pre-line text-gray-300">
                       {truncateText(selectedListing.description, 8)}
                     </p>
                     <p className="text-sm text-gray-400">
@@ -398,157 +428,164 @@ export const RealEstatePage = () => {
                   </div>
                 )}
 
-                {(modalType === "create" || modalType === "edit") && isLoggedIn() && (
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.target);
-                      const newImageFiles = Array.from(formData.getAll("images")).filter(file => file.size > 0);
-                      const removedImageUrls = formData.getAll("removedImages");
+                {(modalType === "create" || modalType === "edit") &&
+                  isLoggedIn() && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+                        const newImageFiles = Array.from(
+                          formData.getAll("images"),
+                        ).filter((file) => file.size > 0);
+                        const removedImageUrls =
+                          formData.getAll("removedImages");
 
-                      const newListing = {
-                        id: selectedListing ? selectedListing.id : null,
-                        title: formData.get("title"),
-                        price: formData.get("price"),
-                        description: formData.get("description"),
-                        creator: modalType === "edit" ? selectedListing.creator : getCurrentUser().email,
-                        images: selectedListing
-                          ? selectedListing.images.filter(
-                              (url) => !removedImageUrls.includes(url),
-                            )
-                          : [],
-                      };
+                        const newListing = {
+                          id: selectedListing ? selectedListing.id : null,
+                          title: formData.get("title"),
+                          price: formData.get("price"),
+                          description: formData.get("description"),
+                          creator:
+                            modalType === "edit"
+                              ? selectedListing.creator
+                              : getCurrentUser().email,
+                          images: selectedListing
+                            ? selectedListing.images.filter(
+                                (url) => !removedImageUrls.includes(url),
+                              )
+                            : [],
+                        };
 
-                      if (modalType === "create") {
-                        await handleCreate(newListing, newImageFiles);
-                      } else {
-                        await handleUpdate(
-                          newListing,
-                          newImageFiles,
-                          removedImageUrls,
-                        );
-                      }
-                      setPreviewImages([]); // Clear preview images after submission
-                    }}
-                  >
-                    <div className="mb-4">
-                      <label
-                        htmlFor="title"
-                        className="mb-2 block text-sm font-bold text-gray-300"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        required
-                        className="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-300 bg-gray-700 shadow focus:outline-none"
-                        defaultValue={selectedListing?.title}
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="price"
-                        className="mb-2 block text-sm font-bold text-gray-300"
-                      >
-                        Price
-                      </label>
-                      <input
-                        type="text"
-                        id="price"
-                        name="price"
-                        required
-                        className="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-300 bg-gray-700 shadow focus:outline-none"
-                        defaultValue={selectedListing?.price}
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="description"
-                        className="mb-2 block text-sm font-bold text-gray-300"
-                      >
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        required
-                        className="focus:shadow-outline h-32 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-300 bg-gray-700 shadow focus:outline-none"
-                        defaultValue={selectedListing?.description}
-                      ></textarea>
-                    </div>
-                    {modalType === "edit" && selectedListing && (
+                        if (modalType === "create") {
+                          await handleCreate(newListing, newImageFiles);
+                        } else {
+                          await handleUpdate(
+                            newListing,
+                            newImageFiles,
+                            removedImageUrls,
+                          );
+                        }
+                        setPreviewImages([]); // Clear preview images after submission
+                      }}
+                    >
                       <div className="mb-4">
-                        <label className="mb-2 block text-sm font-bold text-gray-300">
-                          Current Images
+                        <label
+                          htmlFor="title"
+                          className="mb-2 block text-sm font-bold text-gray-300"
+                        >
+                          Title
                         </label>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedListing.images.map((imageUrl, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={imageUrl}
-                                alt={`Listing image ${index + 1}`}
-                                className="h-24 w-24 rounded object-cover"
-                              />
-                              <input
-                                type="checkbox"
-                                name="removedImages"
-                                value={imageUrl}
-                                className="absolute right-0 top-0 m-1"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Check images to remove them
-                        </p>
+                        <input
+                          type="text"
+                          id="title"
+                          name="title"
+                          required
+                          className="focus:shadow-outline w-full appearance-none rounded border bg-gray-700 px-3 py-2 leading-tight text-gray-300 shadow focus:outline-none"
+                          defaultValue={selectedListing?.title}
+                        />
                       </div>
-                    )}
-                    <div className="mb-4">
-                      <label
-                        htmlFor="images"
-                        className="mb-2 block text-sm font-bold text-gray-300"
-                      >
-                        {modalType === "create" ? "Images" : "Add New Images"}
-                      </label>
-                      <input
-                        type="file"
-                        id="images"
-                        name="images"
-                        accept="image/*"
-                        multiple
-                        className="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-300 bg-gray-700 shadow focus:outline-none"
-                        onChange={handleImageChange}
-                      />
-                      {previewImages.length > 0 && (
+                      <div className="mb-4">
+                        <label
+                          htmlFor="price"
+                          className="mb-2 block text-sm font-bold text-gray-300"
+                        >
+                          Price
+                        </label>
+                        <input
+                          type="text"
+                          id="price"
+                          name="price"
+                          required
+                          className="focus:shadow-outline w-full appearance-none rounded border bg-gray-700 px-3 py-2 leading-tight text-gray-300 shadow focus:outline-none"
+                          defaultValue={selectedListing?.price}
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label
+                          htmlFor="description"
+                          className="mb-2 block text-sm font-bold text-gray-300"
+                        >
+                          Description
+                        </label>
+                        <textarea
+                          id="description"
+                          name="description"
+                          required
+                          className="focus:shadow-outline h-32 w-full appearance-none rounded border bg-gray-700 px-3 py-2 leading-tight text-gray-300 shadow focus:outline-none"
+                          defaultValue={selectedListing?.description}
+                        ></textarea>
+                      </div>
+                      {modalType === "edit" && selectedListing && (
                         <div className="mb-4">
+                          <label className="mb-2 block text-sm font-bold text-gray-300">
+                            Current Images
+                          </label>
                           <div className="flex flex-wrap gap-2">
-                            {previewImages.map((previewUrl, index) => (
-                              <img
-                                key={index}
-                                src={previewUrl}
-                                alt={`Preview ${index + 1}`}
-                                className="h-24 w-24 rounded object-cover"
-                              />
+                            {selectedListing.images.map((imageUrl, index) => (
+                              <div key={index} className="relative">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Listing image ${index + 1}`}
+                                  className="h-24 w-24 rounded object-cover"
+                                />
+                                <input
+                                  type="checkbox"
+                                  name="removedImages"
+                                  value={imageUrl}
+                                  className="absolute right-0 top-0 m-1"
+                                />
+                              </div>
                             ))}
                           </div>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Check images to remove them
+                          </p>
                         </div>
                       )}
-                    </div>
-                    <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="rounded bg-brown-500 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:bg-brown-600"
-                        disabled={isLoading}
-                      >
-                        {modalType === "create"
-                          ? "Add Listing"
-                          : "Update Listing"}
-                      </button>
-                    </div>
-                  </form>
-                )}
+                      <div className="mb-4">
+                        <label
+                          htmlFor="images"
+                          className="mb-2 block text-sm font-bold text-gray-300"
+                        >
+                          {modalType === "create" ? "Images" : "Add New Images"}
+                        </label>
+                        <input
+                          type="file"
+                          id="images"
+                          name="images"
+                          accept="image/*"
+                          multiple
+                          className="focus:shadow-outline w-full appearance-none rounded border bg-gray-700 px-3 py-2 leading-tight text-gray-300 shadow focus:outline-none"
+                          onChange={handleImageChange}
+                        />
+                        {previewImages.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              {previewImages.map((previewUrl, index) => (
+                                <img
+                                  key={index}
+                                  src={previewUrl}
+                                  alt={`Preview ${index + 1}`}
+                                  className="h-24 w-24 rounded object-cover"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          className="rounded bg-brown-500 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:bg-brown-600"
+                          disabled={isLoading}
+                        >
+                          {modalType === "create"
+                            ? "Add Listing"
+                            : "Update Listing"}
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
                 {modalType === "delete" && selectedListing && isLoggedIn() && (
                   <div>
@@ -592,15 +629,20 @@ export const RealEstatePage = () => {
               pagination={{ clickable: true }}
               onSwiper={setPreviewSwiper}
               initialSlide={previewImageIndex}
-              onSlideChange={(swiper) => setPreviewImageIndex(swiper.activeIndex)}
-              className="w-full h-full"
+              onSlideChange={(swiper) =>
+                setPreviewImageIndex(swiper.activeIndex)
+              }
+              className="h-full w-full"
             >
               {selectedListing.images.map((image, index) => (
-                <SwiperSlide key={index} className="flex items-center justify-center">
+                <SwiperSlide
+                  key={index}
+                  className="flex items-center justify-center"
+                >
                   <motion.img
                     src={image}
                     alt={`Full size preview ${index + 1}`}
-                    className="max-h-screen max-w-screen object-contain"
+                    className="max-w-screen max-h-screen object-contain"
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0.9 }}
@@ -613,7 +655,7 @@ export const RealEstatePage = () => {
                 e.stopPropagation();
                 closeImagePreview();
               }}
-              className="absolute right-4 top-4 text-white z-10"
+              className="absolute right-4 top-4 z-10 text-white"
               aria-label="Close preview"
             >
               <FaTimes size={24} />
