@@ -26,6 +26,7 @@ export const RealEstatePage = () => {
   const [previewImageIndex, setPreviewImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [previewSwiper, setPreviewSwiper] = useState(null);
 
   useEffect(() => {
     fetchListingsData();
@@ -182,6 +183,9 @@ export const RealEstatePage = () => {
   const openImagePreview = (image, index) => {
     setPreviewImage(image);
     setPreviewImageIndex(index);
+    if (previewSwiper) {
+      previewSwiper.slideTo(index);
+    }
   };
 
   const closeImagePreview = () => {
@@ -190,10 +194,12 @@ export const RealEstatePage = () => {
   };
 
   const navigateImage = (direction) => {
-    if (!selectedListing) return;
-    const newIndex = (previewImageIndex + direction + selectedListing.images.length) % selectedListing.images.length;
-    setPreviewImage(selectedListing.images[newIndex]);
-    setPreviewImageIndex(newIndex);
+    if (!selectedListing || !previewSwiper) return;
+    if (direction === 1) {
+      previewSwiper.slideNext();
+    } else {
+      previewSwiper.slidePrev();
+    }
   };
 
   const truncateText = (text, maxLines) => {
@@ -252,14 +258,6 @@ export const RealEstatePage = () => {
               />
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center rounded-full bg-gray-700 px-4 py-2 text-white transition duration-300 ease-in-out hover:bg-gray-600"
-              disabled={isLoading}
-            >
-              <FaLanguage className="mr-2" />
-              {language === 'vi' ? 'VI' : 'EN'}
-            </button>
           </div>
         </div>
         <motion.div
@@ -587,42 +585,38 @@ export const RealEstatePage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
-            onClick={closeImagePreview}
           >
-            <motion.img
-              src={previewImage}
-              alt="Full size preview"
-              className="max-h-screen max-w-screen object-contain"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-            />
+            <Swiper
+              modules={[Navigation, Pagination]}
+              navigation
+              pagination={{ clickable: true }}
+              onSwiper={setPreviewSwiper}
+              initialSlide={previewImageIndex}
+              onSlideChange={(swiper) => setPreviewImageIndex(swiper.activeIndex)}
+              className="w-full h-full"
+            >
+              {selectedListing.images.map((image, index) => (
+                <SwiperSlide key={index} className="flex items-center justify-center">
+                  <motion.img
+                    src={image}
+                    alt={`Full size preview ${index + 1}`}
+                    className="max-h-screen max-w-screen object-contain"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.9 }}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
             <button
-              onClick={closeImagePreview}
-              className="absolute right-4 top-4 text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeImagePreview();
+              }}
+              className="absolute right-4 top-4 text-white z-10"
               aria-label="Close preview"
             >
               <FaTimes size={24} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigateImage(-1);
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white"
-              aria-label="Previous image"
-            >
-              <FaChevronLeft size={24} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigateImage(1);
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white"
-              aria-label="Next image"
-            >
-              <FaChevronRight size={24} />
             </button>
           </motion.div>
         )}
