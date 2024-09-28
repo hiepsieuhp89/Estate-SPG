@@ -235,14 +235,6 @@ export const RealEstatePage = () => {
       className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8"
     >
       <div className="mx-auto max-w-7xl">
-        <motion.h1
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 text-5xl font-bold text-white"
-        >
-          Real Estate Listings
-        </motion.h1>
         <motion.h2
           initial={{ y: -30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
