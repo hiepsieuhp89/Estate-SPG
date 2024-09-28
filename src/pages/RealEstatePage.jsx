@@ -196,6 +196,14 @@ export const RealEstatePage = () => {
     setPreviewImageIndex(newIndex);
   };
 
+  const truncateText = (text, maxLines) => {
+    const lines = text.split('\n');
+    if (lines.length > maxLines) {
+      return lines.slice(0, maxLines).join('\n') + '...';
+    }
+    return text;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -233,15 +241,25 @@ export const RealEstatePage = () => {
               <FaPlus className="mr-2 inline-block" /> Add New Listing
             </motion.button>
           )}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search listings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64 rounded-full bg-gray-700 px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-brown-500"
-            />
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="flex items-center">
+            <div className="relative mr-4">
+              <input
+                type="text"
+                placeholder="Search listings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 rounded-full bg-gray-700 px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-brown-500"
+              />
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center rounded-full bg-gray-700 px-4 py-2 text-white transition duration-300 ease-in-out hover:bg-gray-600"
+              disabled={isLoading}
+            >
+              <FaLanguage className="mr-2" />
+              {language === 'vi' ? 'VI' : 'EN'}
+            </button>
           </div>
         </div>
         <motion.div
@@ -259,56 +277,56 @@ export const RealEstatePage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }}
-                className="overflow-hidden rounded-lg bg-gray-800 shadow-md transition duration-300 ease-in-out"
+                className="overflow-hidden rounded-lg bg-gray-800 shadow-md transition duration-300 ease-in-out flex flex-col"
               >
                 <img
                   src={listing.images[0]}
                   alt={listing.title}
                   className="h-48 w-full object-cover"
                 />
-                <div className="p-4">
-                  <h2 className="mb-2 text-xl font-semibold text-white">
+                <div className="p-4 flex-grow">
+                  <h2 className="mb-2 text-xl font-semibold text-white line-clamp-3">
                     {listing.title}
                   </h2>
                   <p className="mb-2 text-lg font-bold text-brown-400">{listing.price}</p>
-                  <p className="mb-4 text-sm text-gray-300">
+                  <p className="mb-4 text-sm text-gray-300 whitespace-pre-line line-clamp-6">
                     {listing.description}
                   </p>
-                  <div className="flex justify-between">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => openModal("view", listing)}
-                      className="rounded bg-gradient-to-r from-brown-500 to-black-600 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700"
-                      aria-label={`View details of ${listing.title}`}
-                    >
-                      View Details
-                    </motion.button>
-                    {isLoggedIn() && getCurrentUser().email === listing.creator && (
-                      <div>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => openModal("edit", listing)}
-                          className="mr-2 text-yellow-500 transition duration-300 ease-in-out hover:text-yellow-600"
-                          aria-label={`Edit ${listing.title}`}
-                          disabled={isLoading}
-                        >
-                          <FaEdit size={20} />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => openModal("delete", listing)}
-                          className="text-red-500 transition duration-300 ease-in-out hover:text-red-600"
-                          aria-label={`Delete ${listing.title}`}
-                          disabled={isLoading}
-                        >
-                          <FaTrash size={20} />
-                        </motion.button>
-                      </div>
-                    )}
-                  </div>
+                </div>
+                <div className="p-4 mt-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => openModal("view", listing)}
+                    className="w-full rounded bg-gradient-to-r from-brown-500 to-black-600 px-4 py-2 font-bold text-white transition duration-300 ease-in-out hover:from-brown-600 hover:to-black-700 mb-2"
+                    aria-label={`View details of ${listing.title}`}
+                  >
+                    View Details
+                  </motion.button>
+                  {isLoggedIn() && getCurrentUser().email === listing.creator && (
+                    <div className="flex justify-between">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => openModal("edit", listing)}
+                        className="flex-1 mr-2 text-yellow-500 transition duration-300 ease-in-out hover:text-yellow-600 bg-gray-700 rounded py-1"
+                        aria-label={`Edit ${listing.title}`}
+                        disabled={isLoading}
+                      >
+                        <FaEdit size={20} className="mx-auto" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => openModal("delete", listing)}
+                        className="flex-1 text-red-500 transition duration-300 ease-in-out hover:text-red-600 bg-gray-700 rounded py-1"
+                        aria-label={`Delete ${listing.title}`}
+                        disabled={isLoading}
+                      >
+                        <FaTrash size={20} className="mx-auto" />
+                      </motion.button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -370,11 +388,11 @@ export const RealEstatePage = () => {
                       ))}
                     </Swiper>
                     <h3 className="mb-2 text-xl font-semibold text-white">
-                      {selectedListing.title}
+                      {truncateText(selectedListing.title, 3)}
                     </h3>
                     <p className="mb-2 text-brown-400">{selectedListing.price}</p>
-                    <p className="mb-4 text-gray-300">
-                      {selectedListing.description}
+                    <p className="mb-4 text-gray-300 whitespace-pre-line">
+                      {truncateText(selectedListing.description, 8)}
                     </p>
                     <p className="text-sm text-gray-400">
                       Listed on: {formatDate(selectedListing.date)}
