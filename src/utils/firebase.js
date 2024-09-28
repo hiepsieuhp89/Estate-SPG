@@ -1,6 +1,25 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, getDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  query,
+  orderBy,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -10,7 +29,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
@@ -23,7 +42,7 @@ export const fetchListings = async () => {
   const listingsCollection = collection(db, "listings");
   const q = query(listingsCollection, orderBy("date", "desc"));
   const listingsSnapshot = await getDocs(q);
-  return listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return listingsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
 
 export const createListing = async (newListing, imageFiles) => {
@@ -31,62 +50,64 @@ export const createListing = async (newListing, imageFiles) => {
     // Generate a new document ID
     const newId = doc(collection(db, "listings")).id;
 
-    // Add the document to Firestore with the generated ID
-    const docRef = await addDoc(collection(db, "listings"), {
-      ...newListing,
-      id: newId,
-      date: serverTimestamp(), // Use server timestamp
-    });
-
     // Upload images and get their URLs
     const imageUrls = await uploadImages(imageFiles);
 
-    // Update the document with the image URLs and return the full listing
-    const updatedListing = {
+    // Create the full listing object
+    const fullListing = {
       ...newListing,
       id: newId,
       images: imageUrls,
-      date: new Date().toISOString(), // Use a JavaScript Date object for the client-side
+      date: serverTimestamp(), // Use server timestamp
     };
 
-    await updateDoc(docRef, { images: imageUrls });
+    // Use set with merge option to create the document with the custom ID
+    await setDoc(doc(db, "listings", newId), fullListing, { merge: true });
 
-    return updatedListing;
+    // Return the full listing with a JavaScript Date object for the client-side
+    return {
+      ...fullListing,
+      date: new Date().toISOString(),
+    };
   } catch (error) {
     console.error("Error in createListing: ", error);
     throw error;
   }
 };
 
-export const updateListingWithImageManagement = async (updatedListing, newImageFiles, removedImageUrls) => {
+export const updateListingWithImageManagement = async (
+  updatedListing,
+  newImageFiles,
+  removedImageUrls,
+) => {
   try {
     let currentImages = updatedListing.images || [];
-    
+
     // Remove specified images
     if (removedImageUrls && removedImageUrls.length > 0) {
-      await Promise.all(removedImageUrls.map(async (url) => {
-        try {
-          await deleteImage(url);
-        } catch (error) {
-          console.error(`Error deleting image ${url}:`, error);
-          // Continue with the update process even if image deletion fails
-        }
-      }));
-      currentImages = currentImages.filter(url => !removedImageUrls.includes(url));
+      await Promise.all(
+        removedImageUrls.map(async (url) => {
+          try {
+            await deleteImage(url);
+          } catch (error) {
+            console.error(`Error deleting image ${url}:`, error);
+            // Continue with the update process even if image deletion fails
+          }
+        }),
+      );
+      currentImages = currentImages.filter(
+        (url) => !removedImageUrls.includes(url),
+      );
     }
-    
     // Add new images
     if (newImageFiles && newImageFiles.length > 0) {
       const newImageUrls = await uploadImages(newImageFiles);
       currentImages = [...currentImages, ...newImageUrls];
     }
-    
+
     const listingWithImages = { ...updatedListing, images: currentImages };
     const listingRef = doc(db, "listings", updatedListing.id);
     await updateDoc(listingRef, listingWithImages);
-    
-    // Re-fetch the updated list
-    return await fetchListings();
   } catch (error) {
     console.error("Error updating listing: ", error);
     throw error;
@@ -95,26 +116,24 @@ export const updateListingWithImageManagement = async (updatedListing, newImageF
 
 export const deleteListingWithImages = async (id) => {
   try {
-    console.log("Deleting listing with images:", id);
     const listingRef = doc(db, "listings", id);
     const listingSnapshot = await getDoc(listingRef);
     const listingData = listingSnapshot.data();
-    
+
     if (listingData && listingData.images) {
-      await Promise.all(listingData.images.map(async (url) => {
-        try {
-          await deleteImage(url);
-        } catch (error) {
-          console.error(`Error deleting image ${url}:`, error);
-          // Continue with the deletion process even if image deletion fails
-        }
-      }));
+      await Promise.all(
+        listingData.images.map(async (url) => {
+          try {
+            await deleteImage(url);
+          } catch (error) {
+            console.error(`Error deleting image ${url}:`, error);
+            // Continue with the deletion process even if image deletion fails
+          }
+        }),
+      );
     }
-    
+
     await deleteDoc(listingRef);
-    
-    // Re-fetch the updated list
-    return await fetchListings();
   } catch (error) {
     console.error("Error deleting listing: ", error);
     throw error;

@@ -67,7 +67,7 @@ export const RealEstatePage = () => {
         creator: currentUser.email,
       };
       const createdListing = await createListing(listingWithCreator, imageFiles);
-      setListings([createdListing, ...listings]);
+      fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error adding document: ", error);
@@ -91,7 +91,7 @@ export const RealEstatePage = () => {
         newImageFiles,
         removedImageUrls,
       );
-      setListings(updatedListings);
+      fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error updating document: ", error);
@@ -108,7 +108,7 @@ export const RealEstatePage = () => {
     }
     try {
       await deleteListingWithImages(id);
-      setListings(listings.filter((listing) => listing.id !== id));
+      fetchListingsData();
       closeModal();
     } catch (error) {
       console.error("Error removing document: ", error);
@@ -326,7 +326,7 @@ export const RealEstatePage = () => {
                     onSubmit={async (e) => {
                       e.preventDefault();
                       const formData = new FormData(e.target);
-                      const newImageFiles = formData.getAll("images");
+                      const newImageFiles = Array.from(formData.getAll("images")).filter(file => file.size > 0);
                       const removedImageUrls = formData.getAll("removedImages");
 
                       const newListing = {
@@ -334,6 +334,7 @@ export const RealEstatePage = () => {
                         title: formData.get("title"),
                         price: formData.get("price"),
                         description: formData.get("description"),
+                        creator: modalType === "edit" ? selectedListing.creator : getCurrentUser().email,
                         images: selectedListing
                           ? selectedListing.images.filter(
                               (url) => !removedImageUrls.includes(url),
