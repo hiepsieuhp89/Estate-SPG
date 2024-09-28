@@ -232,7 +232,7 @@ export const RealEstatePage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8"
+      className="min-h-screen p-8"
     >
       <div className="mx-auto max-w-7xl">
         <motion.h2
