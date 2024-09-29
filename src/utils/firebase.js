@@ -1,26 +1,27 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import {
-  getFirestore,
   collection,
-  getDocs,
-  addDoc,
-  updateDoc,
   deleteDoc,
   doc,
-  serverTimestamp,
-  query,
-  orderBy,
   getDoc,
+  getDocs,
+  getFirestore,
+  orderBy,
+  query,
+  serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import {
+  deleteObject,
+  getDownloadURL,
   getStorage,
+  listAll,
   ref,
   uploadBytes,
-  getDownloadURL,
-  deleteObject,
 } from "firebase/storage";
-import { getAuth } from "firebase/auth";
+import JSZip from "jszip";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -51,7 +52,7 @@ export const createListing = async (newListing, imageFiles) => {
     const newId = doc(collection(db, "listings")).id;
 
     // Upload images and get their URLs
-    const imageUrls = await uploadImages(imageFiles);
+    const imageUrls = await uploadImages(imageFiles, newId);
 
     // Create the full listing object
     const fullListing = {
@@ -71,6 +72,44 @@ export const createListing = async (newListing, imageFiles) => {
     };
   } catch (error) {
     console.error("Error in createListing: ", error);
+    throw error;
+  }
+};
+
+export const downloadImages = async (listingId) => {
+  try {
+
+    const listingRef = ref(storage, `listings/${listingId}`);
+    const listResult = await listAll(listingRef);
+
+    const zip = new JSZip();
+
+    // Download all images and add them to the zip
+    await Promise.all(
+      listResult.items.map(async (itemRef) => {
+        const url = await getDownloadURL(itemRef);
+        const response = await fetch(url);
+        const blob = await response.blob();
+        zip.file(itemRef.name, blob);
+      }),
+    );
+
+    // Generate the zip file
+    const content = await zip.generateAsync({ type: "blob" });
+
+    // Create a download link and trigger the download
+    const downloadUrl = URL.createObjectURL(content);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `listing_${listingId}_images.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the object URL
+    URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    console.error("Error downloading images: ", error);
     throw error;
   }
 };
@@ -101,7 +140,7 @@ export const updateListingWithImageManagement = async (
     }
     // Add new images
     if (newImageFiles && newImageFiles.length > 0) {
-      const newImageUrls = await uploadImages(newImageFiles);
+      const newImageUrls = await uploadImages(newImageFiles, updatedListing.id);
       currentImages = [...currentImages, ...newImageUrls];
     }
 
@@ -140,9 +179,12 @@ export const deleteListingWithImages = async (id) => {
   }
 };
 
-export const uploadImages = async (files) => {
+export const uploadImages = async (files, listingId) => {
   const uploadPromises = files.map(async (file) => {
-    const storageRef = ref(storage, `listings/${Date.now()}-${file.name}`);
+    const storageRef = ref(
+      storage,
+      `listings/${listingId}/${Date.now()}-${file.name}`,
+    );
     await uploadBytes(storageRef, file);
     return getDownloadURL(storageRef);
   });
@@ -163,4 +205,4 @@ export const deleteListing = async (id) => {
   await deleteDoc(doc(db, "listings", id));
 };
 
-export { db, storage, auth };
+export { auth, db, storage };

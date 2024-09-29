@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { getCurrentUser, isLoggedIn } from "@/utils/auth";
 import {
+  createListing,
+  deleteListingWithImages,
+  downloadImages,
+  fetchListings,
+  updateListingWithImageManagement,
+} from "@/utils/firebase";
+import { Timestamp } from "firebase/firestore";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+  FaDownload,
   FaEdit,
-  FaTrash,
   FaPlus,
-  FaTimes,
-  FaChevronLeft,
-  FaChevronRight,
   FaSearch,
+  FaTimes,
+  FaTrash,
 } from "react-icons/fa";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import {
-  fetchListings,
-  createListing,
-  updateListingWithImageManagement,
-  deleteListingWithImages,
-} from "@/utils/firebase";
-import { Timestamp } from "firebase/firestore";
-import { motion, AnimatePresence } from "framer-motion";
-import { isLoggedIn, getCurrentUser } from "@/utils/auth";
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export const RealEstatePage = () => {
   const [listings, setListings] = useState([]);
@@ -227,6 +227,20 @@ export const RealEstatePage = () => {
     return text;
   };
 
+  const handleDownloadImages = async () => {
+    if (!selectedListing) return;
+
+    try {
+      setIsLoading(true);
+      await downloadImages(selectedListing.id);
+    } catch (error) {
+      console.error("Error downloading images:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -404,6 +418,17 @@ export const RealEstatePage = () => {
                           />
                         </SwiperSlide>
                       ))}
+                      <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ delay: 0.2 }}
+                        onClick={handleDownloadImages}
+                        className="absolute bottom-4 right-4 z-10 rounded-full bg-brown-500 p-3 text-white shadow-lg transition duration-300 ease-in-out hover:bg-brown-600"
+                        aria-label="Download all images"
+                      >
+                        <FaDownload size={24} />
+                      </motion.button>
                     </Swiper>
                     <h3 className="mb-2 text-xl font-semibold text-white">
                       {truncateText(selectedListing.title, 3)}
@@ -641,6 +666,17 @@ export const RealEstatePage = () => {
                   />
                 </SwiperSlide>
               ))}
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.2 }}
+                onClick={handleDownloadImages}
+                className="absolute bottom-4 right-4 z-10 rounded-full bg-brown-500 p-3 text-white shadow-lg transition duration-300 ease-in-out hover:bg-brown-600"
+                aria-label="Download all images"
+              >
+                <FaDownload size={24} />
+              </motion.button>
             </Swiper>
             <button
               onClick={(e) => {

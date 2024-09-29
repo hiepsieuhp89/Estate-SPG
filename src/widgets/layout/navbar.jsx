@@ -1,7 +1,6 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { logOut, isLoggedIn } from "@/utils/auth"; // Add import for isLoggedIn
+import { isLoggedIn, logOut } from "@/utils/auth"; // Add import for isLoggedIn
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export function Navbar({ routes }) {
   const navigate = useNavigate();
