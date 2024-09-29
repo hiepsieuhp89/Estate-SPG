@@ -34,7 +34,7 @@ function App() {
   return (
     <div className="w-full items-center justify-end gap-4 bg-gradient-to-br from-gray-900 to-gray-800">
       {!(pathname === "/sign-in" || pathname === "/sign-up") && (
-        <div className="mx-auto px-8 pt-8 flex max-w-7xl items-center justify-center">
+        <div className="px-8 pt-8">
           <Navbar routes={routes} />
         </div>
       )}

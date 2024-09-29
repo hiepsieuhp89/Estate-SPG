@@ -16,7 +16,7 @@ export function Navbar({ routes }) {
   };
 
   return (
-    <div className="flex w-full items-center justify-end gap-4">
+    <div className="mx-auto flex w-full max-w-7xl items-center justify-center gap-4">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
