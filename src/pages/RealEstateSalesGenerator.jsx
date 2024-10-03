@@ -2,6 +2,9 @@ import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaShareAlt, FaEdit, FaCheckCircle } from "react-icons/fa";
 import { CgSpinner } from "react-icons/cg";
+import { createListing } from "@/utils/firebase";
+import { getCurrentUser, isLoggedIn } from "@/utils/auth";
+import { FaPlus } from "react-icons/fa";
 
 // ... existing imports ...
 import { processImages, generateSalesPost, mergeImages } from "@/utils/aiUtils";
@@ -54,8 +57,35 @@ export const RealEstateSalesGenerator = () => {
     alert("Sharing functionality to be implemented");
   };
 
+  const handleAddToDatabase = async () => {
+    if (!isLoggedIn()) {
+      alert("You must be logged in to add a listing.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const currentUser = getCurrentUser();
+      const newListing = {
+        title: "Generated Listing", // You might want to extract a title from the generated post
+        price: imageCaption.split(',')[1].trim(), // Assuming price is the second part of the caption
+        description: generatedPost,
+        creator: currentUser.email,
+        date: new Date(),
+      };
+
+      const createdListing = await createListing(newListing, images);
+      alert("Listing added successfully!");
+    } catch (error) {
+      console.error("Error adding listing to database:", error);
+      alert("Failed to add listing. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-100 rounded-lg shadow-lg">
+    <div className="mt-6 max-w-4xl mx-auto p-6 bg-gray-100 rounded-lg shadow-lg">
       <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">Real Estate Sales Post Generator</h1>
       
       <div {...getRootProps()} className="border-dashed border-2 border-gray-300 rounded-lg p-8 mb-6 text-center cursor-pointer hover:border-blue-500 transition duration-300">
@@ -111,20 +141,29 @@ export const RealEstateSalesGenerator = () => {
             <p className="mb-4">{generatedPost}</p>
           )}
           <div className="flex justify-between items-center">
-            <button
-              onClick={isEditing ? handleSave : handleEdit}
-              className="flex items-center bg-green-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-600 transition duration-300"
-            >
-              {isEditing ? (
-                <>
-                  <FaCheckCircle className="mr-2" /> Save
-                </>
-              ) : (
-                <>
-                  <FaEdit className="mr-2" /> Edit
-                </>
-              )}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={isEditing ? handleSave : handleEdit}
+                className="flex items-center bg-green-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-600 transition duration-300"
+              >
+                {isEditing ? (
+                  <>
+                    <FaCheckCircle className="mr-2" /> Save
+                  </>
+                ) : (
+                  <>
+                    <FaEdit className="mr-2" /> Edit
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleAddToDatabase}
+                className="flex items-center bg-purple-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-purple-600 transition duration-300"
+                disabled={isLoading}
+              >
+                <FaPlus className="mr-2" /> Add to Database
+              </button>
+            </div>
             <button
               onClick={handleShare}
               className="flex items-center bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-600 transition duration-300"

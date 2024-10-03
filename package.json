@@ -9,12 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google-cloud/vision": "^4.3.2",
     "@heroicons/react": "2.0.18",
+    "@huggingface/inference": "^2.8.1",
     "@material-tailwind/react": "2.1.4",
     "axios": "^1.7.7",
     "file-saver": "^2.0.5",
+    "filestack-js": "^3.34.3",
     "firebase": "^10.13.2",
+    "form-data": "^4.0.0",
     "framer-motion": "^11.9.0",
+    "groq-sdk": "^0.7.0",
     "jszip": "^3.10.1",
     "openai": "^4.65.0",
     "prop-types": "15.8.1",
